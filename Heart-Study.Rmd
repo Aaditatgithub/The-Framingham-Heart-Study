@@ -1,0 +1,134 @@
+Installation of libraries
+
+```{r}
+library(caret)
+setwd("C:/Work/Coding/DataScienceCP")
+
+```
+
+Reading the csv
+
+```{r}
+nhanes_dataset <- read.csv("CardiacPrediction.csv")
+nhanes_dataset$CoronaryHeartDisease = as.factor(nhanes_dataset$CoronaryHeartDisease)
+set.seed(123)
+```
+
+Creating train and test datasets
+
+```{r}
+trainIndex <- createDataPartition(nhanes_dataset$CoronaryHeartDisease, p = 0.75, 
+                                  list = FALSE, 
+                                  times = 1)
+train_data <- nhanes_dataset[trainIndex,]
+test_data <- nhanes_dataset[-trainIndex,]
+
+train_data
+
+```
+
+---
+title: 10-Fold Cross Validation
+---
+
+```{r}
+# 10-fold cross validation with 3 repeats
+trainControl <- trainControl(method="repeatedcv", number=10, repeats=3, verboseIter = TRUE)
+
+metric <- "Accuracy"
+```
+
+---
+title: # Bagged CART
+---
+
+```{r}
+set.seed(7)
+fit.treebag <- train(CoronaryHeartDisease~., data = train_data, method = "treebag", metric = metric,trControl = trainControl)
+
+```
+
+---
+title: Random Forest Algorithm
+---
+
+```{r}
+# RF
+set.seed(7)
+fit.rf <- train(CoronaryHeartDisease~., data = train_data, method = "rf", metric = metric,trControl = trainControl)
+```
+
+---
+title: GBM - Stochastic Gradient Boosting
+---
+
+```{r}
+set.seed(7)
+fit.gbm <- train(CoronaryHeartDisease~., data = train_data, method = "gbm",metric = metric,trControl = trainControl, verbose = FALSE)
+```
+
+---
+  title: C5
+---
+
+```{r}
+set.seed(7)
+fit.c50 <- train(CoronaryHeartDisease~., data = train_data, method = "C5.0", metric = metric,trControl =trainControl)
+```
+
+---
+  title: LG - Logistic Regression
+---
+
+```{r}
+set.seed(7)
+fit.glm <- train(CoronaryHeartDisease~., data = train_data, method="glm",
+                 metric=metric,trControl=trainControl)
+```
+
+---
+  title: LDA - Linear Discriminate Analysis 
+---
+
+```{r}
+set.seed(7)
+fit.lda <- train(CoronaryHeartDisease~., data = train_data, method="lda",
+                 metric=metric,trControl=trainControl)
+```
+
+---
+title: K-Nearest Neughbours
+---
+
+```{r}
+set.seed(7)
+fit.knn <- train(CoronaryHeartDisease~., data = train_data, method="knn",
+                 metric=metric,trControl=trainControl)
+```
+
+---
+title: Naive Bayes(NB)
+---
+
+```{r}
+set.seed(7)
+Grid = expand.grid(usekernel=TRUE,adjust=1,fL=c(0.2,0.5,0.8))
+fit.nb <- train(CoronaryHeartDisease~., data = train_data, method="nb",
+                 metric=metric,trControl=trainControl,
+                tuneGrid=Grid)
+```
+
+---
+title: Saving the trained models to files
+---
+
+```{r}
+saveRDS(fit.rf, "trainedRF_model.rds")
+saveRDS(fit.treebag, "trainedBCART_model.rds")
+saveRDS(fit.gbm, "trainedgbm_model.rds")
+saveRDS(fit.c50, "trainedc50_model.rds")
+saveRDS(fit.glm, "trainedglm_model.rds")
+saveRDS(fit.lda, "trainedlda_model.rds")
+saveRDS(fit.knn, "trainedknn_model.rds")
+saveRDS(fit.nb, "trainednb_model.rds")
+```

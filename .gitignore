@@ -1,0 +1,10 @@
+.RData
+.Rhistory
+trainedBCART_model.rds
+trainedc50_model.rds
+trainedgbm_model.rds
+trainedglm_model.rds
+trainedknn_model.rds
+trainedlda_model.rds
+trainednb_model.rds
+trainedRF_model.rds
