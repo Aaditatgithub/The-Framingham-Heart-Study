@@ -1,83 +1,110 @@
+#
+# This is a Shiny web application. You can run the application by clicking
+# the 'Run App' button above.
+#
+# Find out more about building applications with Shiny here:
+#
+#    http://shiny.rstudio.com/
+#
 library(shiny)
+library(xgboost)
+library(caret)
 
-# Define UI with custom CSS styles
+# Define UI
 ui <- fluidPage(
-  tags$style(
-    HTML("
-      /* Custom CSS styles */
-      body {
-        background-color: #ffffff; /* Set background color to slate */
-      }
-    ")
-  ),
-  titlePanel("Heart Disease Prediction"),
-  fluidRow(
-    column(width = 3,
-           numericInput("age", "Age:", value = 50, min = 20, max = 80)
+  titlePanel("Coronary Heart Disease Prediction"),
+  theme = shinythemes::shinytheme("slate"),  # Apply Slate theme
+  sidebarLayout(
+    sidebarPanel(
+      width = 12,  # Set width to occupy entire viewport
+      tags$h4("Input Parameters", style = "color: #FFF;"),
+      # Input fields
+      fluidRow(
+        column(4, 
+               sliderInput("age", "Age", value = 60, min = 1, max = 90, step = 1, width = "100%"),
+               tags$small("Enter age in years")),
+        column(4, 
+               sliderInput("creatinine", "Creatinine", value = 80, min = 10, max = 1050, step = 0.1, width = "100%"),
+               tags$small("Enter creatinine level in mg/dL")),
+        column(4, 
+               sliderInput("glycohemoglobin", "Glycohemoglobin", value = 5.6, min = 3, max = 20, step = 0.1, width = "100%"),
+               tags$small("Enter glycohemoglobin level in %"))
+      ),
+      fluidRow(
+        column(4, 
+               sliderInput("cholesterol", "Cholesterol", value = 5, min = 0, max = 16, step = 0.01, width = "100%"),
+               tags$small("Enter cholesterol level in mg/dL")),
+        column(4, 
+               sliderInput("platelet_count", "Platelet Count", value = 250, min = 0, max = 1000, step = 2, width = "100%"),
+               tags$small("Enter platelet count in 10^3/μL")),
+        column(4, 
+               sliderInput("lymphocyte", "Lymphocyte", value = 50, min = 2, max = 100, step = 0.1, width = "100%"),
+               tags$small("Enter lymphocyte count in %"))
+      ),
+      fluidRow(
+        column(4, 
+               sliderInput("systolic", "Systolic", value = 120, min = 0, max = 300, step = 1, width = "100%"),
+               tags$small("Enter systolic blood pressure in mmHg")),
+        column(4, 
+               sliderInput("uric_acid", "Uric Acid", value = 340, min = 70, max = 1050, step = 0.1, width = "100%"),
+               tags$small("Enter uric acid level in mg/dL")),
+        column(4, 
+               sliderInput("red_cell_distribution_width", "Red Cell Distribution Width", value = 12, min = 9, max = 33, step = 1, width = "100%"),
+               tags$small("Enter red cell distribution width in %"))
+      ),
+      fluidRow(
+        column(4, 
+               sliderInput("monocyte", "Monocyte", value = 5, min = 0, max = 70, step = 1, width = "100%"),
+               tags$small("Enter monocyte count in %")),
+        column(2,
+               br(),
+               actionButton("predictBtn", "Predict", style = "background-color: #007bff; color: #fff; border: none;")
+              ),
+        column(6.5,
+               br(),
+               verbatimTextOutput("predictionText")
+               ),
+             ),
+      hr(),
+      
     ),
-    column(width = 3,
-           numericInput("sex", "Sex (0 = female, 1 = male):", value = 1, min = 0, max = 1)
-    ),
-    column(width = 3,
-           numericInput("cp", "Chest Pain Type (1-4):", value = 1, min = 1, max = 4)
-    ),
-    column(width = 3,
-           numericInput("trestbps", "Resting Blood Pressure (mm Hg):", value = 120, min = 90, max = 200)
-    ),
-    column(width = 3,
-           numericInput("chol", "Serum Cholesterol (mg/dl):", value = 200, min = 100, max = 400)
-    ),
-    column(width = 3,
-           numericInput("fbs", "Fasting Blood Sugar (> 120 mg/dl):", value = 0, min = 0, max = 1)
-    ),
-    column(width = 3,
-           numericInput("restecg", "Resting Electrocardiographic Results (0-2):", value = 0, min = 0, max = 2)
-    ),
-    column(width = 3,
-           numericInput("thalach", "Maximum Heart Rate Achieved:", value = 150, min = 60, max = 220)
-    ),
-    column(width = 3,
-           numericInput("exang", "Exercise Induced Angina (0 = no, 1 = yes):", value = 0, min = 0, max = 1)
-    ),
-    column(width = 12,
-           actionButton("predict", "Predict")
-    ),
-    column(width = 12,
-           textOutput("prediction")
+    mainPanel(
+      # Placeholder for future enhancements
     )
   )
 )
 
+
+
 # Define server logic
 server <- function(input, output) {
-  observeEvent(input$predict, {
-    # Combine inputs into a data frame
-    new_data <- data.frame(
-      age = input$age,
-      sex = input$sex,
-      cp = input$cp,
-      trestbps = input$trestbps,
-      chol = input$chol,
-      fbs = input$fbs,
-      restecg = input$restecg,
-      thalach = input$thalach,
-      exang = input$exang
+  # Load XGBoost model
+  # Load the XGBoost model
+  loaded_xgb_model <- readRDS("C:/Users/Aadit/Downloads/xgb_model.rds")
+  
+  
+  # Perform prediction
+  observeEvent(input$predictBtn, {
+    # Prepare input data for prediction
+    input_data <- data.frame(
+      Age = input$age,
+      Creatinine = input$creatinine,
+      Glycohemoglobin = input$glycohemoglobin,
+      Cholesterol = input$cholesterol,
+      Platelet.count = input$platelet_count,
+      Lymphocyte = input$lymphocyte,
+      Systolic = input$systolic,
+      Uric.Acid = input$uric_acid,
+      Red.Cell.Distribution.Width = input$red_cell_distribution_width,
+      Monocyte = input$monocyte
     )
     
-    # Load the logistic regression model (this is a simple example; you'd use your own trained model)
-    # For demonstration, I'm using a random model without actual training
-    model <- glm(target ~ ., data = mtcars, family = binomial)
+    # Perform prediction using the loaded XGBoost model
+    prediction <- predict(loaded_xgb_model, newdata = input_data)
     
-    # Make predictions
-    predictions <- predict(model, newdata = new_data, type = "response")
-    
-    # Output prediction
-    output$prediction <- renderText({
-      if(predictions >= 0.5) {
-        "Prediction: Heart Disease Likely"
-      } else {
-        "Prediction: No Heart Disease"
-      }
+    # Display prediction result
+    output$predictionText <- renderPrint({
+      paste("Predicted Result:", ifelse(prediction == 1, "Heart Disease", "No Heart Disease"))
     })
   })
 }
